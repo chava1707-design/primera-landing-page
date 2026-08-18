@@ -88,6 +88,15 @@
             align-items: center;
         }
 
+        .social-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-right: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .header-socials a {
             display: inline-flex;
             align-items: center;
@@ -374,7 +383,7 @@
                 opacity: 1;
             }
             50% {
-                transform: scale(1.08);
+                transform: scale(1.15);
                 opacity: 0.85;
             }
         }
@@ -565,8 +574,10 @@
         .social-links {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 1.5rem;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
         }
 
         .social-links a {
@@ -658,6 +669,7 @@
         </div>
         <div class="header-right">
             <div class="header-socials">
+                <span class="social-label">Síguenos:</span>
                 <a href="https://www.instagram.com/vidrios_aluminiosz?igsh=YjQ2aXV3d2praG1y" target="_blank" rel="noopener noreferrer" title="Instagram">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><circle cx="17.5" cy="6.5" r="1.5"></circle></svg>
                 </a>
@@ -900,6 +912,7 @@
     <!-- Footer -->
     <footer>
         <div class="social-links">
+            <span class="social-label">Conecta con nosotros:</span>
             <a href="https://www.instagram.com/vidrios_aluminiosz?igsh=YjQ2aXV3d2praG1y" target="_blank" rel="noopener noreferrer" title="Instagram">
                 📷
             </a>
