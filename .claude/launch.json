@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-server",
+      "runtimeExecutable": "http-server",
+      "runtimeArgs": ["-p", "8000", "-c-1"],
+      "port": 8000
+    }
+  ]
+}
