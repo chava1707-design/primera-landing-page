@@ -946,8 +946,10 @@
             indicators[0].classList.add('active');
         }
 
-        // Manejar envío del formulario con FormSubmit
-        document.querySelector('.contact-form').addEventListener('submit', function(e) {
+        // Cambiar el formulario a FormSubmit y manejar envío
+        const contactForm = document.querySelector('.contact-form');
+        contactForm.action = 'https://formsubmit.co/chava1707@gmail.com';
+        contactForm.addEventListener('submit', function(e) {
             const submitButton = this.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.textContent = 'Enviando...';
