@@ -1,0 +1,6 @@
+{
+  "name": "vidrios-y-aluminios-z",
+  "buildCommand": "echo 'Static site'",
+  "outputDirectory": ".",
+  "public": false
+}
