@@ -708,15 +708,6 @@
         </div>
     </section>
 
-    <!-- 3D Window Section -->
-    <section style="background-color: white; padding: 4rem 1rem; text-align: center;">
-        <div style="max-width: 1000px; margin: 0 auto;">
-            <div id="canvasWrapper" style="width: 100%; max-width: 800px; aspect-ratio: 1; margin: 0 auto; background-color: white;">
-                <canvas id="canvas3d"></canvas>
-            </div>
-        </div>
-    </section>
-
     <!-- Services Section -->
     <section id="servicios" class="services container">
         <h2 class="section-title">Nuestros Servicios</h2>
@@ -912,9 +903,6 @@
         <p>&copy; 2026 Vidrios y Aluminios Z. Todos los derechos reservados.</p>
     </footer>
 
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylon.glTFFileLoader.min.js"></script>
-
     <script>
         let slideIndex = 0;
         const slides = document.querySelectorAll('.carousel-slide');
@@ -947,70 +935,6 @@
             slides[0].classList.add('active');
             indicators[0].classList.add('active');
         }
-
-        // 3D Window - Simple 360 Rotation
-        window.addEventListener('load', function() {
-            const canvas = document.getElementById('canvas3d');
-            const canvasWrapper = document.getElementById('canvasWrapper');
-
-            if (!canvas || !canvasWrapper) return;
-
-            try {
-                // Set canvas size
-                const width = canvasWrapper.offsetWidth;
-                const height = canvasWrapper.offsetHeight;
-                canvas.width = width;
-                canvas.height = height;
-
-                const engine = new BABYLON.Engine(canvas, true);
-                const scene = new BABYLON.Scene(engine);
-                scene.clearColor = new BABYLON.Color3(1, 1, 1);
-
-                // Camera - Fixed, no interaction
-                const camera = new BABYLON.UniversalCamera('camera', new BABYLON.Vector3(2.5, 1.5, 2.5), scene);
-                camera.setTarget(BABYLON.Vector3.Zero());
-                camera.attachControl(canvas, false);
-                camera.inertia = 0;
-                camera.angularSensibility = 0;
-
-                // Lights
-                const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
-                light1.intensity = 0.9;
-
-                const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(5, 10, 7), scene);
-                light2.intensity = 1;
-
-                let windowModel = null;
-
-                // Load GLB model
-                BABYLON.SceneLoader.ImportMesh('', './', 'ventana-aluminio.glb', scene, function(meshes) {
-                    if (meshes.length > 0) {
-                        windowModel = meshes[0].parent || meshes[0];
-                        windowModel.rotation.x = 0;
-                        windowModel.rotation.z = 0;
-                    }
-                });
-
-                // Animation loop - Solo rotación Y (360 sobre su eje)
-                engine.runRenderLoop(function() {
-                    if (windowModel) {
-                        windowModel.rotation.y += 0.008;
-                    }
-                    scene.render();
-                });
-
-                // Handle window resize
-                window.addEventListener('resize', () => {
-                    const newWidth = canvasWrapper.offsetWidth;
-                    const newHeight = canvasWrapper.offsetHeight;
-                    canvas.width = newWidth;
-                    canvas.height = newHeight;
-                    engine.resize();
-                });
-            } catch (e) {
-                console.error('Error en 3D:', e);
-            }
-        });
     </script>
 </body>
 </html>
