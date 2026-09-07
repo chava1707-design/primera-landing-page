@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CalcPro — La calculadora más avanzada</title>
+<style>
+    :root {
+        --bg: #0b0d10;
+        --panel: #14181d;
+        --key: #1e242b;
+        --key-hover: #2a323b;
+        --key-alt: #2b3540;
+        --accent: #f59e0b;
+        --accent-dark: #d97706;
+        --text: #f4f6f8;
+        --muted: #8b95a1;
+        --border: #262d35;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        background:
+            radial-gradient(1200px 600px at 50% -10%, #1b2430 0%, transparent 60%),
+            var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem 1rem 2.5rem;
+        gap: 1.25rem;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        font-size: 1.35rem;
+    }
+
+    .brand .mark {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        display: grid; place-items: center;
+        color: #1a1205; font-size: 1.1rem;
+    }
+
+    .brand .plan {
+        font-size: .65rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        padding: .2rem .45rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .calc {
+        width: 100%;
+        max-width: 360px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 1rem;
+        box-shadow: 0 30px 60px -20px rgba(0,0,0,.7);
+    }
+
+    .screen {
+        background: #0d1116;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.1rem 1rem .9rem;
+        text-align: right;
+        min-height: 108px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: .35rem;
+        overflow: hidden;
+    }
+
+    .history {
+        color: var(--muted);
+        font-size: .8rem;
+        min-height: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .value {
+        font-size: 2.4rem;
+        font-weight: 300;
+        line-height: 1.1;
+        letter-spacing: -.02em;
+        white-space: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .value::-webkit-scrollbar { display: none; }
+
+    .pad {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .6rem;
+        margin-top: 1rem;
+    }
+
+    button.k {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: var(--key);
+        color: var(--text);
+        font-size: 1.25rem;
+        font-family: inherit;
+        height: 62px;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: background .12s ease, transform .06s ease;
+        user-select: none;
+    }
+    button.k:hover { background: var(--key-hover); }
+    button.k:active { transform: scale(.96); }
+    button.k.alt { background: var(--key-alt); color: var(--accent); font-weight: 600; }
+    button.k.alt:hover { background: #35414e; }
+    button.k.eq {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        border-color: transparent;
+        color: #1a1205;
+        font-weight: 700;
+    }
+    button.k.wide { grid-column: span 2; }
+
+    .foot {
+        color: var(--muted);
+        font-size: .78rem;
+        text-align: center;
+        max-width: 360px;
+        line-height: 1.5;
+    }
+
+    /* ---------- Paywall ---------- */
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(5,7,10,.78);
+        backdrop-filter: blur(6px);
+        display: grid;
+        place-items: center;
+        padding: 1.25rem;
+        z-index: 50;
+        animation: fade .18s ease;
+    }
+    @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+    @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.97) } to { opacity: 1; transform: none } }
+
+    .modal {
+        width: 100%;
+        max-width: 400px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 1.6rem 1.4rem 1.3rem;
+        text-align: center;
+        position: relative;
+        animation: pop .22s cubic-bezier(.2,.8,.3,1);
+        max-height: 92vh;
+        overflow-y: auto;
+    }
+
+    .modal .lock { font-size: 2.2rem; }
+
+    .modal h2 {
+        font-size: 1.35rem;
+        margin: .5rem 0 .35rem;
+        letter-spacing: -.02em;
+    }
+
+    .modal .sub { color: var(--muted); font-size: .9rem; line-height: 1.5; }
+
+    .price {
+        margin: 1.1rem 0 .2rem;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: .35rem;
+    }
+    .price .old { color: var(--muted); text-decoration: line-through; font-size: 1rem; }
+    .price .num { font-size: 2.6rem; font-weight: 700; letter-spacing: -.03em; }
+    .price .per { color: var(--muted); font-size: .9rem; }
+
+    .timer { color: var(--accent); font-size: .8rem; font-weight: 600; }
+
+    ul.perks {
+        list-style: none;
+        text-align: left;
+        margin: 1.1rem 0 1.2rem;
+        display: grid;
+        gap: .5rem;
+        font-size: .88rem;
+    }
+    ul.perks li { display: flex; gap: .55rem; align-items: flex-start; color: #d7dde4; }
+    ul.perks li::before { content: "✓"; color: var(--accent); font-weight: 700; }
+
+    .cta {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: .95rem 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        color: #1a1205;
+        transition: transform .06s ease, filter .15s ease;
+    }
+    .cta:hover { filter: brightness(1.06); }
+    .cta:active { transform: scale(.98); }
+    .cta[disabled] { opacity: .7; cursor: progress; }
+
+    .ghost {
+        margin-top: .7rem;
+        width: 100%;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: .85rem;
+        cursor: pointer;
+        padding: .55rem;
+        border-radius: 10px;
+    }
+    .ghost:hover { color: var(--text); background: #1c222a; }
+
+    .status {
+        margin-top: .9rem;
+        font-size: .85rem;
+        color: var(--accent);
+        min-height: 1.2rem;
+        line-height: 1.45;
+    }
+
+    .fineprint {
+        margin-top: 1rem;
+        font-size: .68rem;
+        color: #5f6a76;
+        line-height: 1.5;
+    }
+
+    .close {
+        position: absolute;
+        top: .8rem; right: .9rem;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 1.2rem;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .close:hover { color: var(--text); }
+
+    @media (max-width: 380px) {
+        button.k { height: 56px; font-size: 1.1rem; }
+        .value { font-size: 2rem; }
+    }
+</style>
+</head>
+<body>
+
+<div class="brand">
+    <span class="mark">÷</span>
+    <span>CalcPro</span>
+    <span class="plan" id="planBadge">Plan gratuito</span>
+</div>
+
+<main class="calc">
+    <div class="screen">
+        <div class="history" id="history"></div>
+        <div class="value" id="display">0</div>
+    </div>
+
+    <div class="pad" id="pad">
+        <button class="k alt" data-action="clear">AC</button>
+        <button class="k alt" data-action="back">⌫</button>
+        <button class="k alt" data-op="%">%</button>
+        <button class="k alt" data-op="÷">÷</button>
+
+        <button class="k" data-num="7">7</button>
+        <button class="k" data-num="8">8</button>
+        <button class="k" data-num="9">9</button>
+        <button class="k alt" data-op="×">×</button>
+
+        <button class="k" data-num="4">4</button>
+        <button class="k" data-num="5">5</button>
+        <button class="k" data-num="6">6</button>
+        <button class="k alt" data-op="−">−</button>
+
+        <button class="k" data-num="1">1</button>
+        <button class="k" data-num="2">2</button>
+        <button class="k" data-num="3">3</button>
+        <button class="k alt" data-op="+">+</button>
+
+        <button class="k wide" data-num="0">0</button>
+        <button class="k" data-num=".">.</button>
+        <button class="k eq" data-action="equals">=</button>
+    </div>
+</main>
+
+<p class="foot">Sumar, restar, multiplicar y dividir: gratis para siempre.<br>Ver el resultado requiere CalcPro.</p>
+
+<script>
+(function () {
+    const display = document.getElementById('display');
+    const history = document.getElementById('history');
+    const planBadge = document.getElementById('planBadge');
+
+    let current = '0';
+    let expression = '';
+    let intentos = 0;
+
+    function render() {
+        display.textContent = current;
+        history.textContent = expression;
+    }
+
+    function pressNum(n) {
+        if (n === '.') {
+            if (current.includes('.')) return;
+            current += '.';
+        } else if (current === '0') {
+            current = n;
+        } else {
+            current += n;
+        }
+        render();
+    }
+
+    function pressOp(op) {
+        expression = (expression + ' ' + current + ' ' + op).trim();
+        current = '0';
+        render();
+    }
+
+    function clearAll() {
+        current = '0';
+        expression = '';
+        render();
+    }
+
+    function backspace() {
+        current = current.length > 1 ? current.slice(0, -1) : '0';
+        render();
+    }
+
+    document.getElementById('pad').addEventListener('click', function (e) {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        if (btn.dataset.num !== undefined) return pressNum(btn.dataset.num);
+        if (btn.dataset.op !== undefined) return pressOp(btn.dataset.op);
+        if (btn.dataset.action === 'clear') return clearAll();
+        if (btn.dataset.action === 'back') return backspace();
+        if (btn.dataset.action === 'equals') return abrirPaywall();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        const k = e.key;
+        if (/^[0-9.]$/.test(k)) return pressNum(k);
+        if (k === '+') return pressOp('+');
+        if (k === '-') return pressOp('−');
+        if (k === '*') return pressOp('×');
+        if (k === '/') { e.preventDefault(); return pressOp('÷'); }
+        if (k === '%') return pressOp('%');
+        if (k === 'Backspace') return backspace();
+        if (k === 'Escape') return clearAll();
+        if (k === 'Enter' || k === '=') { e.preventDefault(); return abrirPaywall(); }
+    });
+
+    /* ---------- El chiste ---------- */
+
+    const titulos = [
+        'Tu resultado está listo',
+        'Otra vez tan cerca…',
+        'El resultado sigue ahí',
+        'Ya van {n} intentos',
+        'La matemática no es gratis',
+        'Insistir también es una forma de pagar'
+    ];
+
+    const subtitulos = [
+        'Calculamos <b>{expr}</b> con éxito. Para <i>verlo</i>, necesitas CalcPro.',
+        'El número existe. Está guardado. Es precioso. Cuesta 50 dólares.',
+        'Nuestros servidores ya hicieron el esfuerzo. Ahora te toca a ti.',
+        'Podríamos mostrártelo gratis, pero entonces ¿de qué viviríamos?',
+        'Tu resultado lleva {n} intentos esperando. Se está impacientando.'
+    ];
+
+    const perksBase = [
+        'Ver el resultado de tus operaciones',
+        'Resultados con todos sus dígitos incluidos',
+        'Acceso al signo igual sin restricciones',
+        'Soporte prioritario para números mayores a 9'
+    ];
+
+    const perksExtra = [
+        'Decimales desbloqueados (hasta 2 por operación)',
+        'El número cero, ahora en alta definición',
+        'Sumas que dan más que las dos partes',
+        'Certificado imprimible de que sí sabías la respuesta',
+        'Modo experto: la calculadora te dice “casi”'
+    ];
+
+    const respuestas = [
+        'Procesando… tu banco preguntó “¿en serio?” y colgó.',
+        'Pago rechazado: el resultado subió de precio mientras lo pensabas.',
+        'Error 402: fondos suficientes, criterio insuficiente.',
+        'Casi. El cobro se perdió camino al servidor de resultados.',
+        'Suscripción aprobada… en un universo paralelo. Aquí no.',
+        'Tu tarjeta dijo que sí, pero nosotros dijimos que no.'
+    ];
+
+    function abrirPaywall() {
+        intentos++;
+        planBadge.textContent = intentos < 3 ? 'Plan gratuito'
+                              : intentos < 6 ? 'Plan gratuito (y se nota)'
+                              : 'Plan gratuito · nivel leyenda';
+
+        const expr = (expression + ' ' + current).trim() || current;
+        const titulo = titulos[Math.min(intentos - 1, titulos.length - 1)].replace('{n}', intentos);
+        const sub = subtitulos[(intentos - 1) % subtitulos.length]
+            .replace('{expr}', expr)
+            .replace('{n}', intentos);
+
+        const perks = perksBase.slice();
+        if (intentos > 1) perks.push(perksExtra[(intentos - 2) % perksExtra.length]);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.innerHTML = `
+            <div class="modal" role="dialog" aria-modal="true" aria-label="Suscripción CalcPro">
+                <button class="close" aria-label="Cerrar">✕</button>
+                <div class="lock">🔒</div>
+                <h2>${titulo}</h2>
+                <p class="sub">${sub}</p>
+
+                <div class="price">
+                    <span class="old">$50</span>
+                    <span class="num">$50</span>
+                    <span class="per">/mes</span>
+                </div>
+                <div class="timer">Oferta especial: termina en <span id="cuenta">04:59</span></div>
+
+                <ul class="perks">
+                    ${perks.map(p => '<li>' + p + '</li>').join('')}
+                </ul>
+
+                <button class="cta">Suscribirme por $50</button>
+                <button class="ghost">${intentos < 3 ? 'Seguir contando con los dedos' : 'Volver a intentarlo gratis (no funciona)'}</button>
+
+                <div class="status" aria-live="polite"></div>
+
+                <p class="fineprint">
+                    CalcPro se renueva solo, incluso si dejas de usar la calculadora.
+                    Cancelar requiere resolver una operación cuyo resultado solo ven los suscriptores.
+                </p>
+            </div>`;
+
+        document.body.appendChild(overlay);
+
+        const cerrar = () => { clearInterval(tick); overlay.remove(); };
+        overlay.querySelector('.close').addEventListener('click', cerrar);
+        overlay.querySelector('.ghost').addEventListener('click', cerrar);
+        overlay.addEventListener('click', e => { if (e.target === overlay) cerrar(); });
+
+        // Cuenta regresiva que nunca termina de verdad
+        let seg = 299;
+        const spanCuenta = overlay.querySelector('#cuenta');
+        const tick = setInterval(() => {
+            seg = seg > 0 ? seg - 1 : 299;
+            const m = String(Math.floor(seg / 60)).padStart(2, '0');
+            const s = String(seg % 60).padStart(2, '0');
+            spanCuenta.textContent = m + ':' + s;
+        }, 1000);
+
+        const cta = overlay.querySelector('.cta');
+        const status = overlay.querySelector('.status');
+        let clics = 0;
+
+        cta.addEventListener('click', () => {
+            clics++;
+            cta.disabled = true;
+            const original = cta.textContent;
+            cta.textContent = 'Procesando pago…';
+            status.textContent = '';
+
+            setTimeout(() => {
+                cta.disabled = false;
+                cta.textContent = clics >= 2 ? 'Intentarlo otra vez ($50)' : original;
+                status.textContent = respuestas[(clics - 1) % respuestas.length];
+                if (clics >= 3) {
+                    status.innerHTML += '<br><span style="color:var(--muted)">Tranquilo: aquí nadie cobra nada. Esto es una broma. El resultado, en cambio, sigue siendo secreto.</span>';
+                }
+            }, 1400);
+        });
+    }
+
+    render();
+})();
+</script>
+</body>
+</html>
